@@ -1,0 +1,12 @@
+<!-- relationship_app/templates/relationship_app/book_form.html -->
+<!DOCTYPE html>
+<html>
+<body>
+  <h1>{{ action }} Book</h1>
+  <form method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">{{ action }}</button>
+  </form>
+</body>
+</html>
+

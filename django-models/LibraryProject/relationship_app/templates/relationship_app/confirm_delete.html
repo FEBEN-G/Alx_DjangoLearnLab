@@ -1,0 +1,13 @@
+<!-- relationship_app/templates/relationship_app/confirm_delete.html -->
+<!DOCTYPE html>
+<html>
+<body>
+  <h1>Confirm delete</h1>
+  <p>Are you sure you want to delete: {{ object }} ?</p>
+  <form method="post">{% csrf_token %}
+    <button type="submit">Yes, delete</button>
+    <a href="{% url 'list_books' %}">Cancel</a>
+  </form>
+</body>
+</html>
+
