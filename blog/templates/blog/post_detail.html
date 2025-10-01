@@ -1,0 +1,29 @@
+<!-- blog/templates/blog/post_detail.html -->
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block content %}
+<article class="post-detail">
+    <div class="post-header">
+        <h1>{{ post.title }}</h1>
+        <div class="post-meta">
+            By <strong>{{ post.author }}</strong> on 
+            <time>{{ post.published_date|date:"F d, Y" }}</time>
+        </div>
+    </div>
+    
+    <div class="post-content">
+        {{ post.content|linebreaks }}
+    </div>
+    
+    <div class="post-actions">
+        <a href="{% url 'home' %}" class="btn btn-outline">Back to Posts</a>
+        {% if user.is_authenticated and user == post.author %}
+            <a href="{% url 'post-update' post.pk %}" class="btn btn-edit">Edit Post</a>
+            <a href="{% url 'post-delete' post.pk %}" class="btn btn-danger">Delete Post</a>
+        {% endif %}
+    </div>
+</article>
+{% endblock %}
