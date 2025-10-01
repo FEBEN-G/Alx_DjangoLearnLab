@@ -1,0 +1,41 @@
+<!-- blog/templates/blog/profile.html -->
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <h2>Your Profile</h2>
+        <p>Manage your account settings</p>
+    </div>
+    
+    <div class="profile-form">
+        <form method="POST">
+            {% csrf_token %}
+            <h3>Account Information</h3>
+            {% for field in user_form %}
+            <div class="form-group">
+                {{ field.label_tag }}
+                {{ field }}
+                {% for error in field.errors %}
+                <div class="error">{{ error }}</div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+            
+            <h3>Personal Information</h3>
+            {% for field in profile_form %}
+            <div class="form-group">
+                {{ field.label_tag }}
+                {{ field }}
+                {% for error in field.errors %}
+                <div class="error">{{ error }}</div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+            
+            <button type="submit" class="btn btn-primary">Update Profile</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
