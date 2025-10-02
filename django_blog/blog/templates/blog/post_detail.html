@@ -26,4 +26,63 @@
         {% endif %}
     </div>
 </article>
+
+<section class="comments-section">
+    <div class="comments-header">
+        <h3>Comments ({{ post.comments.count }})</h3>
+    </div>
+    
+    <!-- Comment Form -->
+    {% if user.is_authenticated %}
+    <div class="comment-form-container">
+        <h4>Add a Comment</h4>
+        <form method="POST" action="{% url 'add-comment' post.pk %}">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ comment_form.content }}
+                {% for error in comment_form.content.errors %}
+                <div class="error">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <button type="submit" class="btn btn-primary">Post Comment</button>
+        </form>
+    </div>
+    {% else %}
+    <div class="comment-login-prompt">
+        <p><a href="{% url 'login' %}">Login</a> to leave a comment.</p>
+    </div>
+    {% endif %}
+    
+    <!-- Comments List -->
+    <div class="comments-list">
+        {% for comment in post.comments.all %}
+        <div class="comment" id="comment-{{ comment.pk }}">
+            <div class="comment-header">
+                <div class="comment-author">
+                    <strong>{{ comment.author.username }}</strong>
+                    <span class="comment-date">
+                        {{ comment.created_at|date:"F d, Y" }}
+                        {% if comment.updated_at != comment.created_at %}
+                        (edited {{ comment.updated_at|date:"F d, Y" }})
+                        {% endif %}
+                    </span>
+                </div>
+                {% if user.is_authenticated and user == comment.author %}
+                <div class="comment-actions">
+                    <a href="{% url 'comment-update' comment.pk %}" class="btn-edit-small">Edit</a>
+                    <a href="{% url 'comment-delete' comment.pk %}" class="btn-danger-small">Delete</a>
+                </div>
+                {% endif %}
+            </div>
+            <div class="comment-content">
+                {{ comment.content|linebreaks }}
+            </div>
+        </div>
+        {% empty %}
+        <div class="no-comments">
+            <p>No comments yet. Be the first to comment!</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
 {% endblock %}

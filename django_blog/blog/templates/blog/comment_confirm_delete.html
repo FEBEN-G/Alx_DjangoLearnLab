@@ -1,0 +1,25 @@
+<!-- blog/templates/blog/comment_confirm_delete.html -->
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="delete-confirmation">
+    <h2>Delete Comment</h2>
+    <div class="confirmation-warning">
+        <p>Are you sure you want to delete your comment on "<strong>{{ object.post.title }}</strong>"?</p>
+        <div class="comment-preview">
+            <p><strong>Your comment:</strong></p>
+            <blockquote>{{ object.content|linebreaks }}</blockquote>
+        </div>
+        <p class="warning-text">This action cannot be undone.</p>
+    </div>
+    
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-actions">
+            <button type="submit" class="btn btn-danger">Yes, Delete</button>
+            <a href="{% url 'post-detail' object.post.pk %}" class="btn btn-outline">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

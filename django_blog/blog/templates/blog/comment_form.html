@@ -1,0 +1,34 @@
+<!-- blog/templates/blog/comment_form.html -->
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block title %}Edit Comment{% endblock %}
+
+{% block content %}
+<div class="comment-form-page">
+    <div class="comment-form-container">
+        <h2>Edit Comment</h2>
+        <p>You are editing your comment on: <strong>{{ object.post.title }}</strong></p>
+        
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                {{ form.content.label_tag }}
+                {{ form.content }}
+                {% if form.content.help_text %}
+                <small class="form-text">{{ form.content.help_text }}</small>
+                {% endif %}
+                {% for error in form.content.errors %}
+                <div class="error">{{ error }}</div>
+                {% endfor %}
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Update Comment</button>
+                <a href="{% url 'post-detail' object.post.pk %}" class="btn btn-outline">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
