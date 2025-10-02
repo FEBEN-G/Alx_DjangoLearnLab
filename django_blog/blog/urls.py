@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from django.contrib.auth import views as auth_views
+from taggit.models import Tag
 
 urlpatterns = [
     # Home page - using class-based view
@@ -25,5 +26,6 @@ urlpatterns = [
 
      # Search and Tag URLs
     path('search/', views.search_posts, name='search'),
-    path('tags/<slug:tag_slug>/', views.TaggedPostListView.as_view(), name='tagged-posts'),
+    path('tags/<slug:tag_slug>/', views.PostByTagListView.as_view(), name='tagged-posts'),
+
 ]
