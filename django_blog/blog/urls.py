@@ -22,4 +22,8 @@ urlpatterns = [
     path('post/<int:pk>/comments/new/', views.add_comment, name='add-comment'),
     path('comment/<int:pk>/update/', views.CommentUpdateView.as_view(), name='comment-update'),
     path('comment/<int:pk>/delete/', views.CommentDeleteView.as_view(), name='comment-delete'),
+
+     # Search and Tag URLs
+    path('search/', views.search_posts, name='search'),
+    path('tags/<slug:tag_slug>/', views.TaggedPostListView.as_view(), name='tagged-posts'),
 ]

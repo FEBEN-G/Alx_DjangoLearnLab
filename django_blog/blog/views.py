@@ -11,6 +11,8 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.urls import reverse_lazy
 from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm, CommentForm
 from .models import Post, Comment
+from django.db.models import Q
+from taggit.models import Tag
 
 
 def register(request):
@@ -193,3 +195,59 @@ def add_comment(request, pk):
             messages.success(request, 'Your comment has been added!')
             return redirect('post-detail', pk=post.pk)
     return redirect('post-detail', pk=post.pk)
+class PostSearchView(ListView):
+    model = Post
+    template_name = 'blog/search_results.html'
+    context_object_name = 'posts'
+    paginate_by = 5
+    
+    def get_queryset(self):
+        query = self.request.GET.get('q')
+        if query:
+            # Search in title, content, and tags
+            return Post.objects.filter(
+                Q(title__icontains=query) |
+                Q(content__icontains=query) |
+                Q(tags__name__icontains=query)
+            ).distinct().order_by('-published_date')
+        return Post.objects.none()
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['query'] = self.request.GET.get('q', '')
+        return context
+
+class TaggedPostListView(ListView):
+    model = Post
+    template_name = 'blog/tagged_posts.html'
+    context_object_name = 'posts'
+    paginate_by = 5
+    
+    def get_queryset(self):
+        tag_slug = self.kwargs.get('tag_slug')
+        tag = get_object_or_404(Tag, slug=tag_slug)
+        return Post.objects.filter(tags__in=[tag]).order_by('-published_date')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tag_slug = self.kwargs.get('tag_slug')
+        context['tag'] = get_object_or_404(Tag, slug=tag_slug)
+        return context
+
+# Function-based search view for simple implementation
+def search_posts(request):
+    query = request.GET.get('q')
+    posts = Post.objects.all().order_by('-published_date')
+    
+    if query:
+        posts = posts.filter(
+            Q(title__icontains=query) |
+            Q(content__icontains=query) |
+            Q(tags__name__icontains=query)
+        ).distinct()
+    
+    context = {
+        'posts': posts,
+        'query': query
+    }
+    return render(request, 'blog/search_results.html', context)
