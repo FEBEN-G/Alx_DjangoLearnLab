@@ -18,6 +18,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'bookshelf',  # Your custom app
+      'django_extensions',
 ]
 
 MIDDLEWARE = [

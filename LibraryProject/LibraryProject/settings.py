@@ -31,7 +31,27 @@ CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 
 
-ALLOWED_HOSTS = []
+# LibraryProject/settings.py
+
+# For development - comprehensive ALLOWED_HOSTS
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '0.0.0.0',
+    '10.119.91.104',  # Your local IP
+    
+    # With ports for development server
+    'localhost:8443',
+    '127.0.0.1:8443', 
+    '0.0.0.0:8443',
+    '10.119.91.104:8443',
+    
+    # For runserver_plus
+    'testserver',
+]
+
+# Or for quick development testing:
+# ALLOWED_HOSTS = ['*']  # Remove this in production!
 
 
 # Application definition
@@ -46,6 +66,7 @@ INSTALLED_APPS = [
     'bookshelf',
     'relationship_app',
     'csp',
+      'django_extensions',
 ]
 
 MIDDLEWARE = [
@@ -57,6 +78,11 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'csp.middleware.CSPMiddleware'
+
+    
+    # Custom security middleware
+    'bookshelf.middleware.HTTPSRedirectMiddleware',
+    'bookshelf.middleware.SecurityHeadersMiddleware',
 ]
 
 ROOT_URLCONF = 'LibraryProject.urls'
@@ -215,3 +241,55 @@ LOGGING = {
         },
     },
 }
+
+# HTTPS and SSL Configuration
+# ===========================
+
+# Redirect all HTTP requests to HTTPS
+SECURE_SSL_REDIRECT = False  # Set to True in production with SSL certificate
+
+# HTTP Strict Transport Security (HSTS)
+SECURE_HSTS_SECONDS = 31536000  # 1 year in seconds
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+
+# Secure cookies - only send over HTTPS
+SESSION_COOKIE_SECURE = False  # Set to True in production
+CSRF_COOKIE_SECURE = False     # Set to True in production
+
+# Additional security headers
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+
+# Referrer Policy
+SECURE_REFERRER_POLICY = 'same-origin'
+
+# Content Security Policy (CSP) - Basic implementation
+# For full CSP, consider using django-csp package
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_SCRIPT_SRC = ("'self'",)
+CSP_STYLE_SRC = ("'self'",)
+CSP_IMG_SRC = ("'self'", "data:")
+
+# Production security checklist (commented for development)
+PRODUCTION_SECURITY_SETTINGS = """
+# For production, ensure these settings:
+
+# 1. Set DEBUG to False
+DEBUG = False
+
+# 2. Set proper ALLOWED_HOSTS
+ALLOWED_HOSTS = ['yourdomain.com', 'www.yourdomain.com', 'localhost']
+
+# 3. Enable HTTPS
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+# 4. Use production database
+# 5. Set proper SECRET_KEY (not in version control)
+# 6. Configure proper static and media file serving
+# 7. Set up proper logging
+# 8. Use environment variables for sensitive data
+"""
