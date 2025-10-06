@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Book List - Library Management System{% endblock %}
+
+{% block content %}
+<h1>Book List</h1>
+
+{% if perms.bookshelf.can_create %}
+<div style="margin-bottom: 20px;">
+    <a href="{% url 'bookshelf:book_create' %}" class="btn btn-success">Add New Book</a>
+</div>
+{% endif %}
+
+{% if books %}
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>ISBN</th>
+                <th>Publication Date</th>
+                <th>Created By</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for book in books %}
+            <tr>
+                <td><strong>{{ book.title }}</strong></td>
+                <td>{{ book.author }}</td>
+                <td>{{ book.isbn }}</td>
+                <td>{{ book.publication_date|default:"Not specified" }}</td>
+                <td>{{ book.created_by.email }}</td>
+                <td>
+                    {% if perms.bookshelf.can_edit %}
+                    <a href="{% url 'bookshelf:book_edit' book.id %}" class="btn" style="padding: 4px 8px; font-size: 12px;">Edit</a>
+                    {% endif %}
+                    
+                    {% if perms.bookshelf.can_delete %}
+                    <a href="{% url 'bookshelf:book_delete' book.id %}" class="btn btn-danger" style="padding: 4px 8px; font-size: 12px;">Delete</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% if book.description %}
+            <tr>
+                <td colspan="6" style="background-color: #f9f9f9;">
+                    <strong>Description:</strong> {{ book.description }}
+                </td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <div style="text-align: center; padding: 40px; background-color: #f9f9f9; border-radius: 5px;">
+        <h3>No books available</h3>
+        <p>There are no books in the library yet.</p>
+        {% if perms.bookshelf.can_create %}
+        <a href="{% url 'bookshelf:book_create' %}" class="btn btn-success">Add the First Book</a>
+        {% endif %}
+    </div>
+{% endif %}
+
+<div style="margin-top: 20px;">
+    <a href="{% url 'bookshelf:home' %}" class="btn">Back to Home</a>
+</div>
+
+{% if user.is_staff %}
+<div style="margin-top: 20px; padding: 15px; background-color: #e8f4fd; border-radius: 5px;">
+    <h4>Admin Information</h4>
+    <p><strong>Total Books:</strong> {{ books|length }}</p>
+    <p><strong>Your Permissions:</strong>
+        {% if perms.bookshelf.can_view %}<span class="permission-badge">View</span>{% endif %}
+        {% if perms.bookshelf.can_create %}<span class="permission-badge">Create</span>{% endif %}
+        {% if perms.bookshelf.can_edit %}<span class="permission-badge">Edit</span>{% endif %}
+        {% if perms.bookshelf.can_delete %}<span class="permission-badge">Delete</span>{% endif %}
+    </p>
+</div>
+{% endif %}
+{% endblock %}

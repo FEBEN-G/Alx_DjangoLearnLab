@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete {{ book.title }} - Library Management System{% endblock %}
+
+{% block content %}
+<h1>Confirm Deletion</h1>
+
+<div style="padding: 20px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; margin-bottom: 20px;">
+    <h3 style="color: #721c24; margin-top: 0;">⚠️ Warning: This action cannot be undone!</h3>
+</div>
+
+<div style="padding: 20px; background-color: #f9f9f9; border-radius: 5px; margin-bottom: 20px;">
+    <h3>Book Details</h3>
+    <p><strong>Title:</strong> {{ book.title }}</p>
+    <p><strong>Author:</strong> {{ book.author }}</p>
+    <p><strong>ISBN:</strong> {{ book.isbn }}</p>
+    <p><strong>Created By:</strong> {{ book.created_by.email }}</p>
+    <p><strong>Created On:</strong> {{ book.created_at|date:"M d, Y H:i" }}</p>
+    
+    {% if book.description %}
+    <p><strong>Description:</strong> {{ book.description }}</p>
+    {% endif %}
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+        <p><strong>Are you sure you want to delete "{{ book.title }}" by {{ book.author }}?</strong></p>
+        <button type="submit" class="btn btn-danger">Yes, Delete This Book</button>
+        <a href="{% url 'bookshelf:book_list' %}" class="btn">No, Take Me Back</a>
+    </div>
+</form>
+
+<div style="margin-top: 20px; padding: 15px; background-color: #e8f4fd; border-radius: 5px;">
+    <h4>Deletion Impact</h4>
+    <ul>
+        <li>This book will be permanently removed from the database</li>
+        <li>This action cannot be reversed</li>
+        <li>Make sure you have proper backups if needed</li>
+    </ul>
+</div>
+{% endblock %}

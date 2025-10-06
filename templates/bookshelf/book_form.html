@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if form_type == 'edit' %}Edit {{ book.title }}{% else %}Add New Book{% endif %} - Library Management System
+{% endblock %}
+
+{% block content %}
+<h1>
+    {% if form_type == 'edit' %}
+        Edit Book: {{ book.title }}
+    {% else %}
+        Add New Book
+    {% endif %}
+</h1>
+
+<form method="post">
+    {% csrf_token %}
+    
+    {% if form.non_field_errors %}
+    <div style="color: red; margin-bottom: 15px;">
+        {% for error in form.non_field_errors %}
+            <p>{{ error }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    {% for field in form %}
+    <div class="form-group">
+        <label for="{{ field.id_for_label }}">
+            {{ field.label }}
+            {% if field.field.required %}*{% endif %}
+        </label>
+        {{ field }}
+        {% if field.help_text %}
+        <small style="color: #666;">{{ field.help_text }}</small>
+        {% endif %}
+        {% if field.errors %}
+        <div style="color: red; font-size: 0.9em;">
+            {% for error in field.errors %}
+            <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+    
+    <div class="form-group">
+        <button type="submit" class="btn btn-success">
+            {% if form_type == 'edit' %}Update Book{% else %}Create Book{% endif %}
+        </button>
+        <a href="{% url 'bookshelf:book_list' %}" class="btn">Cancel</a>
+    </div>
+</form>
+
+<div style="margin-top: 20px; padding: 15px; background-color: #fff3cd; border-radius: 5px;">
+    <h4>Security Features</h4>
+    <ul>
+        <li>✅ CSRF Protection Enabled</li>
+        <li>✅ XSS Prevention</li>
+        <li>✅ Input Validation</li>
+        <li>✅ SQL Injection Protection</li>
+        <li>Fields marked with * are required</li>
+        {% if form_type == 'edit' and book %}
+        <li>Original creation: {{ book.created_at|date:"M d, Y" }} by {{ book.created_by.email }}</li>
+        {% endif %}
+    </ul>
+</div>
+{% endblock %}

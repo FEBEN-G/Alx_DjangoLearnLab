@@ -60,3 +60,44 @@ class CustomUser(AbstractUser):
     class Meta:
         verbose_name = 'Custom User'
         verbose_name_plural = 'Custom Users'
+
+class Book(models.Model):
+    """
+    Book model with custom permissions for access control.
+    """
+    title = models.CharField(max_length=200, help_text="Title of the book")
+    author = models.CharField(max_length=100, help_text="Author of the book")
+    isbn = models.CharField(
+        max_length=13, 
+        unique=True, 
+        help_text="International Standard Book Number"
+    )
+    publication_date = models.DateField(
+        null=True, 
+        blank=True, 
+        help_text="Date when the book was published"
+    )
+    description = models.TextField(
+        blank=True, 
+        help_text="Brief description of the book"
+    )
+    created_by = models.ForeignKey(
+        'CustomUser', 
+        on_delete=models.CASCADE,
+        related_name='books_created',
+        help_text="User who created this book record"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        permissions = [
+            ("can_view", "Can view book"),
+            ("can_create", "Can create book"),
+            ("can_edit", "Can edit book"),
+            ("can_delete", "Can delete book"),
+        ]
+        ordering = ['title']
+    
+    def __str__(self):
+        return f"{self.title} by {self.author}"
