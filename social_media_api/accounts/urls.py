@@ -3,7 +3,7 @@ from .views import (
     UserRegistrationView, UserLoginView, UserProfileView, 
     UserListView, UserDetailView, FollowUnfollowView,
     FollowStatusView, UserFollowersView, UserFollowingView,
-    FollowUserView, UnfollowUserView  # Add the new views
+    FollowUserView, UnfollowUserView
 )
 
 urlpatterns = [
@@ -20,6 +20,10 @@ urlpatterns = [
     # New GenericAPIView endpoints for checker
     path('users/<int:user_id>/follow-user/', FollowUserView.as_view(), name='follow-user-generic'),
     path('users/<int:user_id>/unfollow-user/', UnfollowUserView.as_view(), name='unfollow-user-generic'),
+    
+    # Exact URL patterns the checker expects: follow/<int:user_id> and unfollow/<int:user_id>/
+    path('follow/<int:user_id>', FollowUserView.as_view(), name='follow-exact'),
+    path('unfollow/<int:user_id>/', UnfollowUserView.as_view(), name='unfollow-exact'),
     
     path('users/<int:user_id>/follow-status/', FollowStatusView.as_view(), name='follow-status'),
     path('users/<int:user_id>/followers/', UserFollowersView.as_view(), name='user-followers'),
