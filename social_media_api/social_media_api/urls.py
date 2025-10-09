@@ -48,4 +48,6 @@ urlpatterns = [
     path('api/', api_root),
     path('health/', health_check, name='health-check'),
     path('', index),
+    path('posts/<int:pk>/like/', LikePostView.as_view(), name='post-like'),
+    path('posts/<int:pk>/unlike/', UnlikePostView.as_view(), name='post-unlike'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
