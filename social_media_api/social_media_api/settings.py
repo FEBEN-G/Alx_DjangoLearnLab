@@ -13,18 +13,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-development-key-change-in-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# For production deployment, set DEBUG = False
-DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
+# Production setting - DEBUG = False
+DEBUG = False  # Production setting
 
-# Explicitly set DEBUG to False for production if the environment indicates it
-if os.environ.get('PRODUCTION', 'False').lower() == 'true':
-    DEBUG = False
-
-# Alternative: Uncomment the line below to force DEBUG = False for production
-# DEBUG = False  # Production setting
+# For development, you can override this with environment variable
+if os.environ.get('DEVELOPMENT', 'False').lower() == 'true':
+    DEBUG = True
 
 # Production: Set ALLOWED_HOSTS for your domain
-# Development: Allow localhost
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,.herokuapp.com').split(',')
 
 # Application definition
@@ -41,11 +37,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'django_filters',
     'corsheaders',
+    'whitenoise.runserver_nostatic',
 ]
-
-# Add production-only apps
-if not DEBUG:
-    INSTALLED_APPS.append('whitenoise.runserver_nostatic')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -80,7 +73,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'social_media_api.wsgi.application'
 
 # Database Configuration
-# Use SQLite for development, PostgreSQL for production
+# Development: SQLite configuration
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -88,21 +81,47 @@ DATABASES = {
     }
 }
 
-# Use PostgreSQL in production if DATABASE_URL is set
+# Production: PostgreSQL configuration with PORT
 if os.environ.get('DATABASE_URL'):
-    DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
+    # Parse DATABASE_URL and create explicit PostgreSQL configuration
+    db_from_env = dj_database_url.config(conn_max_age=600, ssl_require=True)
+    DATABASES['default'] = db_from_env
+    
+    # Explicit PostgreSQL configuration for production
+    DATABASES['default'].update({
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME', db_from_env.get('NAME', '')),
+        'USER': os.environ.get('DB_USER', db_from_env.get('USER', '')),
+        'PASSWORD': os.environ.get('DB_PASSWORD', db_from_env.get('PASSWORD', '')),
+        'HOST': os.environ.get('DB_HOST', db_from_env.get('HOST', '')),
+        'PORT': os.environ.get('DB_PORT', db_from_env.get('PORT', '5432')),  # Default PostgreSQL port
+    })
+else:
+    # Fallback explicit PostgreSQL configuration if DATABASE_URL is not set
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME', 'social_media_db'),
+        'USER': os.environ.get('DB_USER', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),  # Explicit PORT configuration
+    }
 
-# Production database configuration
-if not DEBUG:
-    # Ensure we use PostgreSQL in production
-    if os.environ.get('DATABASE_URL'):
-        DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
-    else:
-        # Fallback to SQLite but this should not happen in production
-        DATABASES['default'] = {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
+# Alternative: Direct PostgreSQL configuration (commented out for reference)
+"""
+# Production PostgreSQL configuration
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME', 'social_media_db'),
+        'USER': os.environ.get('DB_USER', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),  # PostgreSQL default port
+        'CONN_MAX_AGE': 600,  # Database connection persistence
+    }
+}
+"""
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -170,31 +189,20 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://your-social-media-api.herokuapp.com",
 ]
 
-# Add production CORS origins
-if not DEBUG:
-    CORS_ALLOWED_ORIGINS.extend([
-        "https://your-social-media-api.herokuapp.com",
-    ])
-
 # Security settings for production
-if not DEBUG:
-    # Security headers
-    SECURE_BROWSER_XSS_FILTER = True
-    X_FRAME_OPTIONS = 'DENY'
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    
-    # HTTPS settings
-    SECURE_SSL_REDIRECT = True
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    
-    # HSTS settings
-    SECURE_HSTS_SECONDS = 31536000  # 1 year
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
+SECURE_BROWSER_XSS_FILTER = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_SSL_REDIRECT = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
 
 # WhiteNoise configuration for static files
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
@@ -229,13 +237,10 @@ LOGGING = {
             'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
             'propagate': False,
         },
+        'django.db.backends': {
+            'handlers': ['console'],
+            'level': 'WARNING',  # Set to DEBUG to see SQL queries
+            'propagate': False,
+        },
     },
 }
-
-# Production-specific settings
-# This section explicitly sets production configurations
-PRODUCTION = not DEBUG
-if PRODUCTION:
-    # Explicit production settings
-    DEBUG = False  # Ensure DEBUG is False in production
-    print("PRODUCTION MODE: Debug is disabled, security settings are enabled")
