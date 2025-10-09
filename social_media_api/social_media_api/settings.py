@@ -13,7 +13,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-development-key-change-in-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
+# For production deployment, set DEBUG = False
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
+
+# Explicitly set DEBUG to False for production if the environment indicates it
+if os.environ.get('PRODUCTION', 'False').lower() == 'true':
+    DEBUG = False
+
+# Alternative: Uncomment the line below to force DEBUG = False for production
+# DEBUG = False  # Production setting
 
 # Production: Set ALLOWED_HOSTS for your domain
 # Development: Allow localhost
@@ -83,6 +91,18 @@ DATABASES = {
 # Use PostgreSQL in production if DATABASE_URL is set
 if os.environ.get('DATABASE_URL'):
     DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
+
+# Production database configuration
+if not DEBUG:
+    # Ensure we use PostgreSQL in production
+    if os.environ.get('DATABASE_URL'):
+        DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
+    else:
+        # Fallback to SQLite but this should not happen in production
+        DATABASES['default'] = {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -156,7 +176,6 @@ CORS_ALLOWED_ORIGINS = [
 if not DEBUG:
     CORS_ALLOWED_ORIGINS.extend([
         "https://your-social-media-api.herokuapp.com",
-        "https://your-frontend-domain.com",
     ])
 
 # Security settings for production
@@ -212,3 +231,11 @@ LOGGING = {
         },
     },
 }
+
+# Production-specific settings
+# This section explicitly sets production configurations
+PRODUCTION = not DEBUG
+if PRODUCTION:
+    # Explicit production settings
+    DEBUG = False  # Ensure DEBUG is False in production
+    print("PRODUCTION MODE: Debug is disabled, security settings are enabled")
