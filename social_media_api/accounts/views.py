@@ -66,7 +66,7 @@ class UserDetailView(generics.RetrieveAPIView):
         context['request'] = self.request
         return context
 
-# Follow/Unfollow views using generics.GenericAPIView as checker expects
+# CORRECTED: Follow/Unfollow views using GenericAPIView with proper methods
 class FollowUserView(generics.GenericAPIView):
     """
     View for following a user using GenericAPIView
@@ -82,12 +82,14 @@ class FollowUserView(generics.GenericAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        if request.user.follow(target_user):
+        # Add to following
+        if target_user not in request.user.following.all():
+            request.user.following.add(target_user)
             return Response({
                 'detail': f'You are now following {target_user.username}.',
                 'is_following': True,
-                'followers_count': target_user.followers_count,
-                'following_count': request.user.following_count
+                'followers_count': target_user.followers.count(),
+                'following_count': request.user.following.count()
             }, status=status.HTTP_200_OK)
         else:
             return Response(
@@ -101,15 +103,17 @@ class UnfollowUserView(generics.GenericAPIView):
     """
     permission_classes = [permissions.IsAuthenticated]
     
-    def delete(self, request, user_id):
+    def post(self, request, user_id):
         target_user = get_object_or_404(CustomUser, id=user_id)
         
-        if request.user.unfollow(target_user):
+        # Remove from following
+        if target_user in request.user.following.all():
+            request.user.following.remove(target_user)
             return Response({
                 'detail': f'You have unfollowed {target_user.username}.',
                 'is_following': False,
-                'followers_count': target_user.followers_count,
-                'following_count': request.user.following_count
+                'followers_count': target_user.followers.count(),
+                'following_count': request.user.following.count()
             }, status=status.HTTP_200_OK)
         else:
             return Response(
@@ -129,12 +133,13 @@ class FollowUnfollowView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        if request.user.follow(target_user):
+        if target_user not in request.user.following.all():
+            request.user.following.add(target_user)
             return Response({
                 'detail': f'You are now following {target_user.username}.',
                 'is_following': True,
-                'followers_count': target_user.followers_count,
-                'following_count': request.user.following_count
+                'followers_count': target_user.followers.count(),
+                'following_count': request.user.following.count()
             }, status=status.HTTP_200_OK)
         else:
             return Response(
@@ -145,12 +150,13 @@ class FollowUnfollowView(APIView):
     def delete(self, request, user_id):
         target_user = get_object_or_404(CustomUser, id=user_id)
         
-        if request.user.unfollow(target_user):
+        if target_user in request.user.following.all():
+            request.user.following.remove(target_user)
             return Response({
                 'detail': f'You have unfollowed {target_user.username}.',
                 'is_following': False,
-                'followers_count': target_user.followers_count,
-                'following_count': request.user.following_count
+                'followers_count': target_user.followers.count(),
+                'following_count': request.user.following.count()
             }, status=status.HTTP_200_OK)
         else:
             return Response(
@@ -165,10 +171,10 @@ class FollowStatusView(APIView):
         target_user = get_object_or_404(CustomUser, id=user_id)
         
         return Response({
-            'is_following': request.user.is_following(target_user),
-            'is_followed_by': request.user.is_followed_by(target_user),
-            'followers_count': target_user.followers_count,
-            'following_count': target_user.following_count
+            'is_following': request.user.following.filter(id=target_user.id).exists(),
+            'is_followed_by': target_user.following.filter(id=request.user.id).exists(),
+            'followers_count': target_user.followers.count(),
+            'following_count': target_user.following.count()
         })
 
 class UserFollowersView(generics.ListAPIView):

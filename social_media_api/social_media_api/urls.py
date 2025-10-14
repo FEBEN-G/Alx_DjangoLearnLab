@@ -4,6 +4,9 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.http import HttpResponse, JsonResponse
 
+# Import the like views from posts app - FIXED IMPORT
+from posts.views import LikePostAPIView, UnlikePostAPIView
+
 def health_check(request):
     """Health check endpoint for deployment monitoring"""
     return JsonResponse({
@@ -48,6 +51,6 @@ urlpatterns = [
     path('api/', api_root),
     path('health/', health_check, name='health-check'),
     path('', index),
-    path('posts/<int:pk>/like/', LikePostView.as_view(), name='post-like'),
-    path('posts/<int:pk>/unlike/', UnlikePostView.as_view(), name='post-unlike'),
+    path('posts/<int:pk>/like/', LikePostAPIView.as_view(), name='post-like'),
+    path('posts/<int:pk>/unlike/', UnlikePostAPIView.as_view(), name='post-unlike'),  # FIXED: UnlikePostAPIView
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

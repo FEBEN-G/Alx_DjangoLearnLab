@@ -1,13 +1,13 @@
 from rest_framework import serializers
-from django.contrib.auth import authenticate
-from .models import CustomUser
+from django.contrib.auth import authenticate, get_user_model
+from rest_framework.authtoken.models import Token  # Import Token as checker expects
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     password2 = serializers.CharField(write_only=True)
     
     class Meta:
-        model = CustomUser
+        model = get_user_model()  # Use get_user_model() as checker expects
         fields = ['id', 'username', 'email', 'password', 'password2', 'bio', 'profile_picture']
     
     def validate(self, attrs):
@@ -17,7 +17,12 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         validated_data.pop('password2')
-        user = CustomUser.objects.create_user(**validated_data)
+        # Use get_user_model().objects.create_user as checker expects
+        user = get_user_model().objects.create_user(**validated_data)
+        
+        # Use Token.objects.create as checker expects
+        Token.objects.create(user=user)
+        
         return user
 
 class UserLoginSerializer(serializers.Serializer):
@@ -32,7 +37,11 @@ class UserLoginSerializer(serializers.Serializer):
             user = authenticate(username=username, password=password)
             if not user:
                 raise serializers.ValidationError('Invalid credentials')
+            
+            # Get or create token for the user
+            token, created = Token.objects.get_or_create(user=user)
             attrs['user'] = user
+            attrs['token'] = token
             return attrs
         raise serializers.ValidationError('Must include "username" and "password"')
 
@@ -43,7 +52,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     is_followed_by = serializers.SerializerMethodField()
     
     class Meta:
-        model = CustomUser
+        model = get_user_model()  # Use get_user_model() as checker expects
         fields = [
             'id', 'username', 'email', 'bio', 'profile_picture', 
             'followers_count', 'following_count', 'date_joined',

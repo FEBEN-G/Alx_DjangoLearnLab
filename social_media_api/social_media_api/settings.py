@@ -13,8 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-development-key-change-in-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# Production setting - DEBUG = False
-DEBUG = False  # Production setting
+DEBUG = True  # Changed to True for development
 
 # For development, you can override this with environment variable
 if os.environ.get('DEVELOPMENT', 'False').lower() == 'true':
@@ -24,6 +23,7 @@ if os.environ.get('DEVELOPMENT', 'False').lower() == 'true':
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,.herokuapp.com').split(',')
 
 # Application definition
+# Make sure INSTALLED_APPS includes 'accounts'
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -34,10 +34,16 @@ INSTALLED_APPS = [
     
     # Third party apps
     'rest_framework',
+    'rest_framework.authtoken',  # For Token authentication
     'rest_framework_simplejwt',
     'django_filters',
     'corsheaders',
     'whitenoise.runserver_nostatic',
+    
+    # Local apps - MAKE SURE THESE ARE INCLUDED
+    'accounts',
+    'posts',
+    'notifications',
 ]
 
 MIDDLEWARE = [
@@ -72,56 +78,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'social_media_api.wsgi.application'
 
-# Database Configuration
-# Development: SQLite configuration
+# Database Configuration - CHANGED TO SQLITE
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
-# Production: PostgreSQL configuration with PORT
-if os.environ.get('DATABASE_URL'):
-    # Parse DATABASE_URL and create explicit PostgreSQL configuration
-    db_from_env = dj_database_url.config(conn_max_age=600, ssl_require=True)
-    DATABASES['default'] = db_from_env
-    
-    # Explicit PostgreSQL configuration for production
-    DATABASES['default'].update({
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', db_from_env.get('NAME', '')),
-        'USER': os.environ.get('DB_USER', db_from_env.get('USER', '')),
-        'PASSWORD': os.environ.get('DB_PASSWORD', db_from_env.get('PASSWORD', '')),
-        'HOST': os.environ.get('DB_HOST', db_from_env.get('HOST', '')),
-        'PORT': os.environ.get('DB_PORT', db_from_env.get('PORT', '5432')),  # Default PostgreSQL port
-    })
-else:
-    # Fallback explicit PostgreSQL configuration if DATABASE_URL is not set
-    DATABASES['default'] = {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'social_media_db'),
-        'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),  # Explicit PORT configuration
-    }
-
-# Alternative: Direct PostgreSQL configuration (commented out for reference)
-"""
-# Production PostgreSQL configuration
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'social_media_db'),
-        'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),  # PostgreSQL default port
-        'CONN_MAX_AGE': 600,  # Database connection persistence
-    }
-}
-"""
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -174,6 +137,7 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter',
+        'rest_framework.authentication.TokenAuthentication',
     ],
 }
 
@@ -192,7 +156,8 @@ CORS_ALLOWED_ORIGINS = [
     "https://your-social-media-api.herokuapp.com",
 ]
 
-# Security settings for production
+# Security settings for production - COMMENTED OUT FOR DEVELOPMENT
+'''
 SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = 'DENY'
 SECURE_CONTENT_TYPE_NOSNIFF = True
@@ -203,6 +168,7 @@ CSRF_COOKIE_SECURE = True
 SECURE_HSTS_SECONDS = 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
+'''
 
 # WhiteNoise configuration for static files
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
